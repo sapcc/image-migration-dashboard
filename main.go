@@ -113,7 +113,7 @@ func main() {
 }
 
 func runCollector(db *core.Database, clientset *kubernetes.Clientset) {
-	ticker := time.Tick(12 * time.Hour)
+	ticker := time.Tick(30 * time.Minute)
 	for {
 		select {
 		case <-ticker:
