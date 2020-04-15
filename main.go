@@ -79,7 +79,7 @@ func main() {
 				db.RW.Lock()
 				t := time.Unix(data.ScrapedAt, 0)
 				db.LastScrapeTime = t
-				db.DailyResults[t.Format("2006-01-02")] = data
+				db.DailyResults[t.Format(core.ISODateFormat)] = data
 				db.RW.Unlock()
 			}
 		}
@@ -101,7 +101,7 @@ func main() {
 	listenAddr := ":8080"
 	http.HandleFunc("/donut.png", handleGetDonutChart)
 	http.HandleFunc("/graph.png", handleGetGraph)
-	http.HandleFunc("/", homepageHandler)
+	http.HandleFunc("/", handleHomePage)
 	logg.Info("listening on " + listenAddr)
 	err = httpee.ListenAndServeContext(httpee.ContextWithSIGINT(context.Background()), listenAddr, nil)
 	if err != nil {

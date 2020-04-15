@@ -11,7 +11,7 @@ import (
 	"github.com/wcharczuk/go-chart"
 )
 
-const homePageHTML = `
+var homePageTemplate = template.Must(template.New("homepage").Parse(`
 <!doctype html>
 <html class="no-js" lang="en">
 
@@ -77,9 +77,10 @@ const homePageHTML = `
 				</div>
 			</div>
 
+			{{ range $reg, $imgs := .Images }}
 			<div class="row">
 				<div class="twelve columns">
-					<h5>Keppel</h5>
+					<h5>{{ $reg }}</h5>
 				</div>
 			</div>
 			<div class="row">
@@ -92,29 +93,39 @@ const homePageHTML = `
 							</tr>
 						</thead>
 						<tbody>
-							{{ range $k, $v := .Images }}
+							{{ range $name, $cntrs := $imgs }}
 							<tr>
-								<td>{{ $k }}</td>
-								<td>{{ $v }}</td>
+								<td>{{ $name }}</td>
+								<td>
+									<ul>
+									{{ range $v := $cntrs }}
+										<li>
+											{{ $v }}
+										</li>
+									{{ end }}
+									</ul>
+								</td>
 							</tr>
 							{{ end }}
 						</tbody>
 					</table>
 				</div>
 			</div>
+			{{ end }}
+
 		</div>
 	</div> <!-- Primary page container -->
 </body>
 
 </html>
-`
+`))
 
 ///////////////////////////////////////////////////////////////////////////////
 // http.HandleFunc(s)
 
-func homepageHandler(w http.ResponseWriter, r *http.Request) {
+func handleHomePage(w http.ResponseWriter, r *http.Request) {
 	db.RW.RLock()
-	res := db.DailyResults[db.LastScrapeTime.Format("2006-01-02")]
+	res := db.DailyResults[db.LastScrapeTime.Format(core.ISODateFormat)]
 	images := db.Images
 	db.RW.RUnlock()
 
@@ -122,19 +133,13 @@ func homepageHandler(w http.ResponseWriter, r *http.Request) {
 		LastResult core.ScanResult
 		Images     core.ImageData
 	}{res, images}
-
-	t, err := template.New("homepage").Parse(homePageHTML)
-	if err != nil {
-		logg.Error(err.Error())
-	}
-
-	t.Execute(w, data)
+	homePageTemplate.Execute(w, data)
 }
 
 // HandleGetDonutChart serves donuts.
 func handleGetDonutChart(w http.ResponseWriter, r *http.Request) {
 	db.RW.RLock()
-	res := db.DailyResults[db.LastScrapeTime.Format("2006-01-02")]
+	res := db.DailyResults[db.LastScrapeTime.Format(core.ISODateFormat)]
 	db.RW.RUnlock()
 
 	donut := chart.DonutChart{
