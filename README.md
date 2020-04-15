@@ -19,6 +19,6 @@ If running outside a cluster:
 image-migration-dashboard
 ```
 
-Dashboard will run at `:8080`.
+For more info: `image-migration-dashboard --help`.
 
-For more info: `image-migration-dashboard --help`
+Dashboard will run at `:8080`.

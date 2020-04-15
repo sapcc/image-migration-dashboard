@@ -14,10 +14,8 @@ import (
 	"github.com/sapcc/go-bits/logg"
 	"github.com/sapcc/image-migration-dashboard/internal/core"
 
-	// load the auth plugin
-
 	"k8s.io/client-go/kubernetes"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc" // load the auth plugin
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
