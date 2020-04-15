@@ -88,7 +88,7 @@ const homePageHTML = `
 						<thead>
 							<tr>
 								<th>Image</th>
-								<th>Pod/Container</th>
+								<th>Namespace/Pod/Container</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -143,7 +143,7 @@ func handleGetDonutChart(w http.ResponseWriter, r *http.Request) {
 		Values: []chart.Value{
 			{Value: float64(res.NoOfImages.Keppel), Label: "Keppel"},
 			{Value: float64(res.NoOfImages.Quay), Label: "Quay"},
-			{Value: float64(res.NoOfImages.Misc), Label: "Misc"},
+			{Value: float64(res.NoOfImages.Misc), Label: "Misc."},
 		},
 	}
 	var b bytes.Buffer

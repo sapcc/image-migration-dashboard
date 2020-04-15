@@ -32,23 +32,22 @@ func (db *Database) ScanCluster(clientset *kubernetes.Clientset) error {
 	result.ScrapedAt = now.Unix()
 
 	// sort containers to their images
-	tmp := make(ImageData)
+	images := make(ImageData)
 	for _, pod := range pods.Items {
+		ns := pod.ObjectMeta.GetNamespace()
 		podName := pod.ObjectMeta.GetName()
 		for _, c := range pod.Spec.Containers {
-			n := fmt.Sprintf("%s/%s", podName, c.Name)
-			tmp[c.Image] = append(tmp[c.Image], n)
+			n := fmt.Sprintf("%s/%s/%s", ns, podName, c.Name)
+			images[c.Image] = append(images[c.Image], n)
 		}
 		for _, c := range pod.Spec.InitContainers {
-			n := fmt.Sprintf("%s/%s", podName, c.Name)
-			tmp[c.Image] = append(tmp[c.Image], n)
+			n := fmt.Sprintf("%s/%s/%s", ns, podName, c.Name)
+			images[c.Image] = append(images[c.Image], n)
 		}
 	}
 
-	// determine image source and discard misc. image data
-	// we are only interested in containers using Keppel or Quay
-	images := make(ImageData)
-	for name, cntrs := range tmp {
+	// determine image source
+	for name := range images {
 		matchList := imageFormatRx.FindStringSubmatch(name)
 		if matchList != nil {
 			switch matchList[1] {
@@ -56,8 +55,9 @@ func (db *Database) ScanCluster(clientset *kubernetes.Clientset) error {
 				result.NoOfImages.Keppel++
 			case "hub":
 				result.NoOfImages.Quay++
+			default:
+				result.NoOfImages.Misc++
 			}
-			images[name] = cntrs
 		} else {
 			result.NoOfImages.Misc++
 		}
