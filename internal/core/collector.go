@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"time"
 
 	"github.com/sapcc/go-bits/logg"
@@ -31,7 +32,7 @@ func (db *Database) ScanCluster(clientset *kubernetes.Clientset) error {
 	var result ScanResult
 	result.ScrapedAt = now.Unix()
 
-	// sort containers to their images
+	// get all images
 	allImgs := make(map[string][]string)
 	for _, pod := range pods.Items {
 		ns := pod.ObjectMeta.GetNamespace()
@@ -46,33 +47,35 @@ func (db *Database) ScanCluster(clientset *kubernetes.Clientset) error {
 		}
 	}
 
-	// determine the images' registry
-	keppelImgs := make(map[string][]string)
-	quayImgs := make(map[string][]string)
-	miscImgs := make(map[string][]string)
-	for name, cntrs := range allImgs {
-		matchList := imageFormatRx.FindStringSubmatch(name)
+	// determine image registry and sort the date alphabetically
+	keys := make([]string, 0, len(allImgs))
+	for k := range allImgs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var imgReport ImageReport
+	for _, v := range keys {
+		cntrs := allImgs[v]
+		sort.Strings(cntrs)
+
+		matchList := imageFormatRx.FindStringSubmatch(v)
 		if matchList != nil {
 			switch matchList[1] {
 			case "keppel":
-				keppelImgs[name] = cntrs
+				imgReport.Keppel = append(imgReport.Keppel, Image{Name: v, Containers: cntrs})
 			case "hub":
-				quayImgs[name] = cntrs
+				imgReport.Quay = append(imgReport.Quay, Image{Name: v, Containers: cntrs})
 			default:
-				miscImgs[name] = cntrs
+				imgReport.Misc = append(imgReport.Misc, Image{Name: v, Containers: cntrs})
 			}
 		} else {
-			miscImgs[name] = cntrs
+			imgReport.Misc = append(imgReport.Misc, Image{Name: v, Containers: cntrs})
 		}
 	}
-	imgsPerRegistry := make(ImageData)
-	imgsPerRegistry["Keppel"] = keppelImgs
-	imgsPerRegistry["Quay"] = quayImgs
-	imgsPerRegistry["Misc."] = miscImgs
-
-	result.NoOfImages.Keppel = len(keppelImgs)
-	result.NoOfImages.Quay = len(quayImgs)
-	result.NoOfImages.Misc = len(miscImgs)
+	result.NoOfImages.Keppel = len(imgReport.Keppel)
+	result.NoOfImages.Quay = len(imgReport.Quay)
+	result.NoOfImages.Misc = len(imgReport.Misc)
 	result.NoOfImages.Total = result.NoOfImages.Keppel + result.NoOfImages.Quay + result.NoOfImages.Misc
 	logg.Info("%d images found: %d from Keppel, %d from Quay, and %d from misc. sources",
 		result.NoOfImages.Total, result.NoOfImages.Keppel,
@@ -80,7 +83,7 @@ func (db *Database) ScanCluster(clientset *kubernetes.Clientset) error {
 
 	db.RW.Lock()
 	db.DailyResults[date] = result
-	db.Images = imgsPerRegistry
+	db.Images = imgReport
 	db.LastScrapeTime = now
 	db.RW.Unlock()
 	logg.Info("successfully updated the database")
@@ -108,8 +111,8 @@ func (db *Database) ScanCluster(clientset *kubernetes.Clientset) error {
 	logg.Info("uploaded scan result to %s", obj.FullName())
 
 	b, err = json.Marshal(struct {
-		Images ImageData `json:"images"`
-	}{imgsPerRegistry})
+		Images ImageReport `json:"images"`
+	}{imgReport})
 	if err != nil {
 		return err
 	}

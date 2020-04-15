@@ -81,10 +81,10 @@ var homePageTemplate = template.Must(template.New("homepage").Parse(`
 				</div>
 			</div>
 
-			{{ range $reg, $imgs := .Images }}
+			{{ range $reg := .Registries }}
 			<div class="row">
 				<div class="twelve columns">
-					<h5>{{ $reg }}</h5>
+					<h5>{{ $reg.Name }}</h5>
 				</div>
 			</div>
 			<div class="row">
@@ -97,12 +97,12 @@ var homePageTemplate = template.Must(template.New("homepage").Parse(`
 							</tr>
 						</thead>
 						<tbody>
-							{{ range $name, $cntrs := $imgs }}
+							{{ range $img := $reg.Images }}
 							<tr>
-								<td style="max-width: 350px;; word-wrap: break-word;">{{ $name }}</td>
+								<td style="max-width: 350px;; word-wrap: break-word;">{{ $img.Name }}</td>
 								<td>
 									<ul>
-									{{ range $v := $cntrs }}
+									{{ range $v := $img.Containers }}
 										<li>
 											{{ $v }}
 										</li>
@@ -133,10 +133,24 @@ func handleHomePage(w http.ResponseWriter, r *http.Request) {
 	images := db.Images
 	db.RW.RUnlock()
 
-	data := struct {
+	// sort everything alphabetically
+	var data struct {
 		LastResult core.ScanResult
-		Images     core.ImageData
-	}{res, images}
+		Registries []struct {
+			Name   string
+			Images []core.Image
+		}
+	}
+	data.LastResult = res
+	data.Registries = append(data.Registries, []struct {
+		Name   string
+		Images []core.Image
+	}{
+		{"Keppel", images.Keppel},
+		{"Quay", images.Quay},
+		{"Misc.", images.Misc},
+	}...)
+
 	homePageTemplate.Execute(w, data)
 }
 

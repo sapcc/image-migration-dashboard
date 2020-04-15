@@ -13,7 +13,7 @@ const ISODateFormat = "2006-01-02"
 type Database struct {
 	RW             sync.RWMutex
 	DailyResults   map[string]ScanResult // map of date (ISO format) to ScanResult
-	Images         ImageData
+	Images         ImageReport
 	LastScrapeTime time.Time
 }
 
@@ -29,7 +29,16 @@ type ScanResult struct {
 	} `json:"no_of_images"`
 }
 
-// ImageData is a map of registry name to a map of image name to container
-// names that are using it.
-// Containers names are in the form: namespace/pod/container
-type ImageData map[string]map[string][]string
+// ImageReport holds the data for all the images.
+type ImageReport struct {
+	Keppel []Image `json:"keppel"`
+	Quay   []Image `json:"quay"`
+	Misc   []Image `json:"misc"`
+}
+
+// Image holds the data for a specific image.
+type Image struct {
+	Name string `json:"name"`
+	// Container names are in the form: namespace/pod/container
+	Containers []string `json:"containers"`
+}

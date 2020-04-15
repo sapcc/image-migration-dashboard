@@ -50,8 +50,8 @@ func main() {
 
 	// populate database using the backups from Swift
 	db.DailyResults = make(map[string]core.ScanResult)
-	db.Images = make(core.ImageData)
 	db.LastScrapeTime = time.Now()
+	// fatalIfErr(db.ScanCluster(clientset))
 
 	acc, err := core.GetObjectStoreAccount()
 	fatalIfErr(err)
@@ -67,7 +67,7 @@ func main() {
 
 		if o.Name() == "image_data" {
 			var data struct {
-				Images core.ImageData `json:"images"`
+				Images core.ImageReport `json:"images"`
 			}
 			if err = json.Unmarshal(b, &data); err == nil {
 				db.RW.Lock()
@@ -90,7 +90,8 @@ func main() {
 	fatalIfErr(err)
 
 	db.RW.Lock()
-	if len(db.DailyResults)+len(db.Images) > 0 {
+	if len(db.DailyResults)+
+		len(db.Images.Keppel)+len(db.Images.Quay)+len(db.Images.Misc) > 0 {
 		logg.Info("successfully populated the database from Swift backups")
 	} else {
 		logg.Info("could not populate the database from Swift since no data found")
