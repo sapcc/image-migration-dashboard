@@ -47,6 +47,8 @@ var homePageTemplate = template.Must(template.New("homepage").Parse(`
 			</div>
 		</div>
 
+		<hr>
+
 		<!-- Image distribution container -->
 		<div class="container">
 			<div class="row">
@@ -69,6 +71,8 @@ var homePageTemplate = template.Must(template.New("homepage").Parse(`
 			</div>
 		</div>
 
+		<hr>
+
 		<!-- Images container -->
 		<div class="container">
 			<div class="row">
@@ -88,14 +92,14 @@ var homePageTemplate = template.Must(template.New("homepage").Parse(`
 					<table class="u-full-width">
 						<thead>
 							<tr>
-								<th>Image</th>
+								<th style="max-width: 350px;;">Image</th>
 								<th>Namespace/Pod/Container</th>
 							</tr>
 						</thead>
 						<tbody>
 							{{ range $name, $cntrs := $imgs }}
 							<tr>
-								<td>{{ $name }}</td>
+								<td style="max-width: 350px;; word-wrap: break-word;">{{ $name }}</td>
 								<td>
 									<ul>
 									{{ range $v := $cntrs }}
