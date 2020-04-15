@@ -111,17 +111,14 @@ func main() {
 
 func runCollector(db *core.Database, clientset *kubernetes.Clientset) {
 	ticker := time.Tick(30 * time.Minute)
-	for {
-		select {
-		case <-ticker:
-			db.RW.RLock()
-			t := db.LastScrapeTime
-			db.RW.RUnlock()
-			if time.Since(t) > 24*time.Hour {
-				err := db.ScanCluster(clientset)
-				if err != nil {
-					logg.Error(err.Error())
-				}
+	for range ticker {
+		db.RW.RLock()
+		t := db.LastScrapeTime
+		db.RW.RUnlock()
+		if time.Since(t) > 24*time.Hour {
+			err := db.ScanCluster(clientset)
+			if err != nil {
+				logg.Error("cluster scan unsuccessful: %s", err.Error())
 			}
 		}
 	}
