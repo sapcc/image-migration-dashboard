@@ -18,6 +18,7 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -30,7 +31,7 @@ func fatalIfErr(err error) {
 }
 
 func main() {
-	// get path to the kubeconfig file
+	inCluster := flag.Bool("in-cluster", false, "specify whether the application is running inside of k8s cluster")
 	var kubeconfig *string
 	if h := os.Getenv("HOME"); h != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(h, ".kube", "config"),
@@ -40,8 +41,16 @@ func main() {
 	}
 	flag.Parse()
 
-	// use the current context in kubeconfig to build config
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	var (
+		config *rest.Config
+		err    error
+	)
+	if *inCluster {
+		config, err = rest.InClusterConfig()
+	} else {
+		// use the current context in kubeconfig to build config
+		config, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	}
 	fatalIfErr(err)
 
 	// create the clientset
@@ -51,7 +60,6 @@ func main() {
 	// populate database using the backups from Swift
 	db.DailyResults = make(map[string]core.ScanResult)
 	db.LastScrapeTime = time.Now()
-	// fatalIfErr(db.ScanCluster(clientset))
 
 	acc, err := core.GetObjectStoreAccount()
 	fatalIfErr(err)
