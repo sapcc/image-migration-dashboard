@@ -51,6 +51,7 @@ func main() {
 	// populate database using the backups from Swift
 	db.DailyResults = make(map[string]core.ScanResult)
 	db.Images = make(core.ImageData)
+	db.LastScrapeTime = time.Now()
 
 	acc, err := core.GetObjectStoreAccount()
 	fatalIfErr(err)
