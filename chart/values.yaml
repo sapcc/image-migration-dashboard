@@ -1,0 +1,2 @@
+migration_dashboard:
+  image_tag: DEFINED_BY_PIPELINE

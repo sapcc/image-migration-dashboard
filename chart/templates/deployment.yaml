@@ -1,0 +1,45 @@
+kind: Deployment
+{{- if .Capabilities.APIVersions.Has "apps/v1" }}
+apiVersion: apps/v1
+{{- else }}
+apiVersion: extensions/v1beta1
+{{- end }}
+
+metadata:
+  name: image-migration-dashboard
+
+spec:
+  revisionHistoryLimit: 5
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 2
+  selector:
+    matchLabels:
+      name: image-migration-dashboard
+  template:
+    metadata:
+      labels:
+        name: image-migration-dashboard
+    spec:
+      containers:
+        - name: dashboard
+          image: {{include "migration_dashboard_image" $}}
+          imagePullPolicy: IfNotPresent
+          args:
+            - in-cluster
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            timeoutSeconds: 10
+            periodSeconds: 60
+            initialDelaySeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            timeoutSeconds: 5
+            periodSeconds: 5
