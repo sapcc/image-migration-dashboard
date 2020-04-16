@@ -21,4 +21,4 @@ image-migration-dashboard
 
 For more info: `image-migration-dashboard --help`.
 
-Dashboard will run at `:8080`.
+Dashboard will run at `localhost:80`.

@@ -106,7 +106,7 @@ func main() {
 
 	go runCollector(&db, clientset)
 
-	listenAddr := ":8080"
+	listenAddr := ":80"
 	http.HandleFunc("/donut.png", handleGetDonutChart)
 	http.HandleFunc("/graph.png", handleGetGraph)
 	http.HandleFunc("/", handleHomePage)
