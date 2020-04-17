@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"html/template"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/sapcc/go-bits/logg"
@@ -166,7 +167,17 @@ func handleGetGraph(w http.ResponseWriter, r *http.Request) {
 	ts := []time.Time{}
 	kfs := []float64{}
 	qfs := []float64{}
-	for _, v := range db.DailyResults {
+
+	//if we just do `range db.DailyResults`, we get a sort-of-random order
+	//because it's a map; but we need the correct time order to render the graphs
+	//correctly
+	dateStrings := []string{}
+	for k := range db.DailyResults {
+		dateStrings = append(dateStrings, k)
+	}
+	sort.Strings(dateStrings)
+	for _, dateString := range dateStrings {
+		v := db.DailyResults[dateString]
 		ts = append(ts, time.Unix(v.ScrapedAt, 0))
 		kfs = append(kfs, float64(v.NoOfImages.Keppel))
 		qfs = append(qfs, float64(v.NoOfImages.Quay))
