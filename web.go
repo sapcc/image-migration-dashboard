@@ -24,101 +24,82 @@ var homePageTemplate = template.Must(template.New("homepage").Parse(`
 	<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Raleway:400,300,600">
 	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
 	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+	<style type="text/css">
+		section.header {
+			margin-top: 0.5em;
+		}
+
+		div.container.wide {
+			width: 95%;
+			max-width: initial;
+		}
+
+		ul > li {
+			margin-bottom: 0.25em;
+			line-height: 1.2;
+		}
+	</style>
 </head>
 
 <body>
-	<!-- Primary page container -->
 	<div class="container">
 		<section class="header">
 			<h2 class="title" style="text-align: center;">Image Migration Dashboard</h2>
 		</section>
+	</div>
 
-		<!-- Image usage over time container -->
-		<div class="container">
-			<div class="row">
-				<div class="twelve columns">
-					<h4>Image usage over time</h4>
-				</div>
+	<div class="container wide">
+		<div class="row">
+			<!-- Image usage over time container -->
+			<div class="nine columns">
+				<h4>Image sources over time</h4>
+				<img class="u-max-full-width" src="/graph.png">
 			</div>
-			<div class="row">
-				<div class="twelve columns">
-					<img class="u-max-full-width" src="/graph.png">
-				</div>
+
+			<!-- Image distribution container -->
+			<div class="three columns">
+				<h4>As of today</h4>
+				<img class="u-max-full-width" src="/donut.png">
+				<p>
+					{{- $n := .LastResult.NoOfImages -}}
+					{{$n.Quay}} Quay + {{$n.Keppel}} Keppel + {{$n.Misc}} Misc = {{$n.Total -}}
+				</p>
 			</div>
 		</div>
+	</div>
 
+	<!-- Images container -->
+	<div class="container">
 		<hr>
+		{{ range $reg := .Registries }}
+		<h4>Images currently coming from {{ $reg.Name }}</h4>
+		<table class="u-full-width">
+			<thead>
+				<tr>
+					<th style="max-width: 350px;;">Image</th>
+					<th>Namespace/Pod/Container</th>
+				</tr>
+			</thead>
+			<tbody>
+				{{ range $img := $reg.Images }}
+				<tr>
+					<td style="max-width: 350px;; word-wrap: break-word;">{{ $img.Name }}</td>
+					<td>
+						<ul>
+						{{ range $v := $img.Containers }}
+							<li>
+								{{ $v }}
+							</li>
+						{{ end }}
+						</ul>
+					</td>
+				</tr>
+				{{ end }}
+			</tbody>
+		</table>
+		{{ end }}
 
-		<!-- Image distribution container -->
-		<div class="container">
-			<div class="row">
-				<div class="twelve columns">
-					<h4>Image distribution</h4>
-				</div>
-			</div>
-			<div class="row">
-				<div class="one-half column">
-					<img class="u-max-full-width" src="/donut.png">
-				</div>
-				<div class="one-half column">
-					<ul>
-						<li>Total: {{ .LastResult.NoOfImages.Total }}</li>
-						<li>Keppel: {{ .LastResult.NoOfImages.Keppel }}</li>
-						<li>Quay: {{ .LastResult.NoOfImages.Quay }}</li>
-						<li>Misc.: {{ .LastResult.NoOfImages.Misc }}</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-
-		<hr>
-
-		<!-- Images container -->
-		<div class="container">
-			<div class="row">
-				<div class="twelve columns">
-					<h4>Images</h4>
-				</div>
-			</div>
-
-			{{ range $reg := .Registries }}
-			<div class="row">
-				<div class="twelve columns">
-					<h5>{{ $reg.Name }}</h5>
-				</div>
-			</div>
-			<div class="row">
-				<div class="twelve columns">
-					<table class="u-full-width">
-						<thead>
-							<tr>
-								<th style="max-width: 350px;;">Image</th>
-								<th>Namespace/Pod/Container</th>
-							</tr>
-						</thead>
-						<tbody>
-							{{ range $img := $reg.Images }}
-							<tr>
-								<td style="max-width: 350px;; word-wrap: break-word;">{{ $img.Name }}</td>
-								<td>
-									<ul>
-									{{ range $v := $img.Containers }}
-										<li>
-											{{ $v }}
-										</li>
-									{{ end }}
-									</ul>
-								</td>
-							</tr>
-							{{ end }}
-						</tbody>
-					</table>
-				</div>
-			</div>
-			{{ end }}
-
-		</div>
-	</div> <!-- Primary page container -->
+	</div>
 </body>
 
 </html>
