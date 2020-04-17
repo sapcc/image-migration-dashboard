@@ -146,8 +146,8 @@ func handleHomePage(w http.ResponseWriter, r *http.Request) {
 		Name   string
 		Images []core.Image
 	}{
-		{"Keppel", images.Keppel},
 		{"Quay", images.Quay},
+		{"Keppel", images.Keppel},
 		{"Misc.", images.Misc},
 	}...)
 

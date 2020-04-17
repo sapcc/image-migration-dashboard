@@ -101,6 +101,11 @@ func main() {
 		logg.Info("successfully populated the database from Swift backups")
 	} else {
 		logg.Info("could not populate the database from Swift since no data found")
+		// do the initial scan
+		err := db.ScanCluster(clientset)
+		if err != nil {
+			logg.Error("cluster scan unsuccessful: %s", err.Error())
+		}
 	}
 	db.RW.Unlock()
 
