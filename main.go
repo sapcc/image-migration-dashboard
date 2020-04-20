@@ -95,9 +95,12 @@ func main() {
 	})
 	fatalIfErr(err)
 
-	db.RW.Lock()
-	if len(db.DailyResults)+
-		len(db.Images.Keppel)+len(db.Images.Quay)+len(db.Images.Misc) > 0 {
+	db.RW.RLock()
+	dbPopulated := len(db.DailyResults)+len(db.Images.Keppel)+
+		len(db.Images.Quay)+len(db.Images.Misc) > 0
+	db.RW.RUnlock()
+
+	if dbPopulated {
 		logg.Info("successfully populated the database from Swift backups")
 	} else {
 		logg.Info("could not populate the database from Swift since no data found")
@@ -107,7 +110,6 @@ func main() {
 			logg.Error("cluster scan unsuccessful: %s", err.Error())
 		}
 	}
-	db.RW.Unlock()
 
 	go runCollector(&db, clientset)
 
