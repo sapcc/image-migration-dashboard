@@ -144,7 +144,7 @@ func runCollector(db *core.Database, clientset *kubernetes.Clientset) {
 		db.RW.RLock()
 		t := db.LastScrapeTime
 		db.RW.RUnlock()
-		if time.Since(t) > 24*time.Hour {
+		if time.Since(t) > 6*time.Hour {
 			err := db.ScanCluster(clientset)
 			if err != nil {
 				logg.Error("cluster scan unsuccessful: %s", err.Error())
