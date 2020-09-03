@@ -28,7 +28,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-var imageFormatRx = regexp.MustCompile(`^(\S+)\.\S+\.\S+\.\S+\/.*$`)
+var imageFormatRx = regexp.MustCompile(`^(\S+)\.\S+\.\S+\.\S+/.*$`)
+
+//If the image has no dots in the part before the first slash (like "foo/bar"
+//instead of "example.com/foo/bar"), then it's coming from Docker Hub.
+var dockerHubRx = regexp.MustCompile(`^[^/.]+(?:[/:].*)?$`)
 
 // ScanCluster scans a cluster for all the pods, processes the information,
 // and saves it to the object store.
@@ -83,17 +87,20 @@ func (db *Database) ScanCluster(clientset *kubernetes.Clientset) error {
 			default:
 				imgReport.Misc = append(imgReport.Misc, Image{Name: v, Containers: cntrs})
 			}
+		} else if dockerHubRx.MatchString(v) {
+			imgReport.DockerHub = append(imgReport.DockerHub, Image{Name: v, Containers: cntrs})
 		} else {
 			imgReport.Misc = append(imgReport.Misc, Image{Name: v, Containers: cntrs})
 		}
 	}
 	result.NoOfImages.Keppel = len(imgReport.Keppel)
 	result.NoOfImages.Quay = len(imgReport.Quay)
+	result.NoOfImages.DockerHub = len(imgReport.DockerHub)
 	result.NoOfImages.Misc = len(imgReport.Misc)
-	result.NoOfImages.Total = result.NoOfImages.Keppel + result.NoOfImages.Quay + result.NoOfImages.Misc
-	logg.Info("%d images found: %d from Keppel, %d from Quay, and %d from misc. sources",
+	result.NoOfImages.Total = result.NoOfImages.Keppel + result.NoOfImages.Quay + result.NoOfImages.DockerHub + result.NoOfImages.Misc
+	logg.Info("%d images found: %d from Keppel, %d from Quay, %d from Docker Hub, and %d from misc. sources",
 		result.NoOfImages.Total, result.NoOfImages.Keppel,
-		result.NoOfImages.Quay, result.NoOfImages.Misc)
+		result.NoOfImages.Quay, result.NoOfImages.DockerHub, result.NoOfImages.Misc)
 
 	db.RW.Lock()
 	db.DailyResults[date] = result

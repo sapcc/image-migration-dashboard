@@ -38,16 +38,18 @@ type ScanResult struct {
 		Total  int `json:"total"`
 		Keppel int `json:"keppel"`
 		// Note: here Quay refers to the self-hosted Quay, not the public Quay.io
-		Quay int `json:"quay"`
-		Misc int `json:"misc"`
+		Quay      int `json:"quay"`
+		DockerHub int `json:"docker_hub"`
+		Misc      int `json:"misc"`
 	} `json:"no_of_images"`
 }
 
 // ImageReport holds the data for all the images.
 type ImageReport struct {
-	Keppel []Image `json:"keppel"`
-	Quay   []Image `json:"quay"`
-	Misc   []Image `json:"misc"`
+	Keppel    []Image `json:"keppel"`
+	Quay      []Image `json:"quay"`
+	DockerHub []Image `json:"docker_hub"`
+	Misc      []Image `json:"misc"`
 }
 
 // Image holds the data for a specific image.

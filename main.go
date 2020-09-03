@@ -111,7 +111,7 @@ func main() {
 
 	db.RW.RLock()
 	dbPopulated := len(db.DailyResults)+len(db.Images.Keppel)+
-		len(db.Images.Quay)+len(db.Images.Misc) > 0
+		len(db.Images.Quay)+len(db.Images.DockerHub)+len(db.Images.Misc) > 0
 	db.RW.RUnlock()
 
 	if dbPopulated {

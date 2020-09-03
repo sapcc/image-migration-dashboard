@@ -77,7 +77,7 @@ var homePageTemplate = template.Must(template.New("homepage").Parse(`
 				<img class="u-max-full-width" src="/donut.png">
 				<p>
 					{{- $n := .LastResult.NoOfImages -}}
-					{{$n.Quay}} Quay + {{$n.Keppel}} Keppel + {{$n.Misc}} Misc = {{$n.Total -}}
+					{{$n.Quay}} Quay + {{$n.Keppel}} Keppel + {{$n.DockerHub}} Docker Hub + {{$n.Misc}} Misc = {{$n.Total -}}
 				</p>
 			</div>
 		</div>
@@ -144,6 +144,7 @@ func handleHomePage(w http.ResponseWriter, r *http.Request) {
 	}{
 		{"Quay", images.Quay},
 		{"Keppel", images.Keppel},
+		{"Docker Hub", images.DockerHub},
 		{"Misc.", images.Misc},
 	}...)
 
@@ -162,6 +163,7 @@ func handleGetDonutChart(w http.ResponseWriter, r *http.Request) {
 		Values: []chart.Value{
 			{Value: float64(res.NoOfImages.Keppel), Label: "Keppel"},
 			{Value: float64(res.NoOfImages.Quay), Label: "Quay"},
+			{Value: float64(res.NoOfImages.DockerHub), Label: "Docker Hub"},
 			{Value: float64(res.NoOfImages.Misc), Label: "Misc."},
 		},
 	}
@@ -181,6 +183,7 @@ func handleGetGraph(w http.ResponseWriter, r *http.Request) {
 	ts := []time.Time{}
 	kfs := []float64{}
 	qfs := []float64{}
+	dfs := []float64{}
 
 	//if we just do `range db.DailyResults`, we get a sort-of-random order
 	//because it's a map; but we need the correct time order to render the graphs
@@ -195,6 +198,7 @@ func handleGetGraph(w http.ResponseWriter, r *http.Request) {
 		ts = append(ts, time.Unix(v.ScrapedAt, 0))
 		kfs = append(kfs, float64(v.NoOfImages.Keppel))
 		qfs = append(qfs, float64(v.NoOfImages.Quay))
+		dfs = append(dfs, float64(v.NoOfImages.DockerHub))
 	}
 	db.RW.RUnlock()
 
@@ -217,6 +221,11 @@ func handleGetGraph(w http.ResponseWriter, r *http.Request) {
 				Name:    "Quay",
 				XValues: ts,
 				YValues: qfs,
+			},
+			chart.TimeSeries{
+				Name:    "Docker Hub",
+				XValues: ts,
+				YValues: dfs,
 			},
 		},
 	}
