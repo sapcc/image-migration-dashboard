@@ -1,3 +1,7 @@
+# Archived project. No maintenance.
+
+This project is not maintained anymore and is archived.
+
 # image-migration-dashboard
 
 Dashboard for visualising the ongoing image migration from Quay to
